@@ -1,0 +1,14 @@
+#include<iostream>
+
+using namespace std;
+int main(){
+	int a,b,c=0;
+	cout<<"Ingrese a: ";cin>>a;
+	cout<<"Ingrese b: ";cin>>b;
+	c=a^b;
+	//a. el número que contiene sólo los bits que son 1 en ambos número//
+	cout<<"El número que contiene solo los bits que son 1 en ambos numero es: "<<c<<endl;
+	c=a|b;
+	//b. el número que contiene los bits que son 1 en alguno de los números
+	cout<<"El número que contiene los bits que son 1 en alguno de los numeros: "<<c<<endl;
+}

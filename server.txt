@@ -1,0 +1,68 @@
+import socket
+import sys
+import time
+from os import system as sys
+
+# Creo un socket TCP/IP
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# Le asigno un puerto al socket
+
+#direccion=socket.gethostname()
+direccion='localhost'
+server_address = ('192.168.1.42', 10001)
+print('\nIniciando en {} puerto {}'.format(*server_address)) #El * dice que use todos los componentes del array
+sock.bind(server_address)
+# Empiezo a escuchar si alguien se conecta
+sock.listen()
+
+print('\nEsperando un cliente...')
+connection, client_address = sock.accept()
+print('\nConectado\nDireccion del cliente: ', client_address)
+
+#Variables
+len_anterior=0
+#Programa
+def Leer_archivo():
+  try:
+    file = open("temperaturas.txt", "r")
+  except FileNotFoundError:
+    print("\nAun no hay lecturas guardadas")
+    return 0
+  linData = file.readlines()
+  file.close()
+  global len_anterior
+  #print("\nDEBUG len_anterior= "+str(len_anterior)+" len(linData)= "+str(len(linData)))
+  if len(linData)!=len_anterior:
+    len_anterior=len(linData)
+    temp_pos=linData[-2].find(": ")
+    temp_str=linData[-2][temp_pos+2:temp_pos+8]
+    hora_pos=linData[-2].find("-")
+    hora_str=linData[-2][hora_pos+1:hora_pos+9]
+    date_str=linData[-2][hora_pos-10:hora_pos]
+    #print("\ntemp= "+temp_str+" hora= "+hora_str+" fecha= "+date_str)
+    data=[temp_str,hora_str,date_str]
+    return data
+  else:
+    return 0
+  
+i=0
+print("\nPara salir presione Ctrl+C")
+try:
+  while True:
+    lectura=Leer_archivo()
+    if lectura!=0:
+      print("\nDEBUG {} - {} - {}".format(*lectura))
+      print('\nEnviando lecturas')
+      connection.sendall(("{} - {} - {}".format(*lectura)).encode('UTF-8'))
+    i+=1
+    time.sleep(2)
+except KeyboardInterrupt:
+  print("\nSaliendo...")
+  sys('clear')
+  connection.close()
+except:
+  print("Ocurrio un error inesperado")
+  connection.close()
+
+

@@ -1,0 +1,49 @@
+#include<iostream>
+
+
+using namespace std;
+/*Escribir un programa que pida 3 números por pantalla e identifique 
+cual es el valor centralsi es posible. Ej. a es central si y solo si b > a > c.
+                                           b                         a > b > c  
+										   c                         a > c > b        */
+
+int main(){
+	
+	int a,b,c;
+	cout<<"Ingrese el valor de a: ";cin>>a;
+	cout<<"Ingrese el valor de b: ";cin>>b;
+	cout<<"Ingrese el valor de c: ";cin>>c;
+	// a en medio
+	if(b>a){
+		if(a>c){
+			cout<<"El intermedio es: "<<a;
+		}
+	}else if(c>a){
+		if(a>b){
+		cout<<"El intermedio es: "<<a;	
+		}
+	}
+	//b en el medio
+	if(a>b){
+		if(b>c){
+			cout<<"El intermedio es: "<<b;
+		}
+		
+	}else if(c>b){
+		if(b>a){
+			cout<<"El intermedio es: "<<b;
+		}
+	}
+	//c en el medio
+	if(a>c){
+		if(c>b){
+			cout<<"El intermedio es: "<<c;
+		}
+	}else if(b>c){
+		if(c>a){
+			cout<<"El intermedio es: "<<c;
+		}
+	}
+	
+	return 0;
+}

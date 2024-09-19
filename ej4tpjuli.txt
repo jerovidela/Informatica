@@ -1,0 +1,20 @@
+#include<iostream>
+
+using namespace std;
+
+int main(){
+	float a,b,c,d,e;
+	float op;
+	cout<<"Ingrese el valor de a"<<endl;cin>>a;
+	cout<<"Ingrese el valor de b"<<endl;cin>>b;
+	cout<<"Ingrese el valor de c"<<endl;cin>>c;
+	cout<<"Ingrese el valor de d"<<endl;cin>>d;
+	cout<<"Ingrese el valor de e"<<endl;cin>>e;
+	
+	op=((3*a)+b)/(c-((d+(5*e))/(a-b)));
+	
+	cout<<"El resultado de la operacion es: "<<op<<endl;
+	
+	return 0;
+	
+}

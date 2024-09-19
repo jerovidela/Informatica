@@ -1,0 +1,95 @@
+import socket
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+import threading
+import numpy as np
+
+#Configuro el socket
+def get_constants(prefix):
+    """Create a dictionary mapping socket module
+    constants to their names.
+    """
+    return {
+        getattr(socket, n): n
+        for n in dir(socket)
+        if n.startswith(prefix)
+    }
+
+
+families = get_constants('AF_')
+types = get_constants('SOCK_')
+protocols = get_constants('IPPROTO_')
+
+# Create a TCP/IP socket
+sock = socket.create_connection(('192.168.1.42', 10001))
+
+#Listas
+listas=[]
+listas.append([0]) #Segundos
+listas.append([0]) #Temperaturas
+
+#Configuramos la gráfica
+fig = plt.figure()
+ax = fig.add_subplot(111)
+hl, = plt.plot(listas[0],listas[1])
+plt.ylim(10, 80)
+plt.xlim(0,200)
+ax.set(xlabel='tiempo (s)', ylabel='temperatura (°C)',
+        title='Lecturas:')
+ax.grid()
+
+# Función que se va a ejecutar en otro thread
+# y que guardará los datos del serial en 'out_data'
+def GetData(out_data):
+  i=0
+  offset=0  
+  while True:
+    try:
+      #print("Recibiendo...")
+
+      cant_esperada = len('24.123 - 10:10:10 - 10/10/1010')
+
+      data_res = sock.recv(cant_esperada)
+      #print('received {!r}'.format(data))
+    except:
+        print('closing socket')
+        sock.close()
+        break
+    #Temperatura
+    temp=float(data_res[0:6])
+    #print("DEBUG"+str(data[0:6]))
+    listas[1].append(temp)
+    #Tiempo
+    seg=int(data_res[9:11])*3600+int(data_res[12:14])*60+int(data_res[15:17])
+    if i!=0:
+      seg-=offset
+    else:
+      offset=seg
+      seg=0
+    i+=1
+    listas[0].append(seg)
+
+    if len(listas[0]) > 400:
+        listas[0].pop(0)
+        listas[1].pop(0)
+
+# Función que actualizará los datos de la gráfica
+# Se llama periódicamente desde el 'FuncAnimation'
+def update_line(num, hl, data):
+    dx=np.array(data[0])
+    dy=np.array(data[1])
+    #hl.set_data(data[0], data[1])
+    hl.set_data(dx,dy)
+    return hl,
+
+# Configuramos la función que "animará" nuestra gráfica
+line_ani = animation.FuncAnimation(fig, update_line, fargs=(hl, listas),
+    interval=50, blit=False)
+
+# Configuramos y lanzamos el hilo encargado de leer datos del serial
+dataCollector = threading.Thread(target = GetData, args=(listas,))
+dataCollector.start()
+
+plt.show()
+
+dataCollector.join()

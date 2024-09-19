@@ -1,0 +1,25 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+void main() {
+	int N;
+	int i;
+	printf("Insertar un valor entre 5 y 10");
+	scanf("%d", &N);
+	if (N<5) {
+	printf("El numero ingresado es menor a 5");
+	printf("Ingrese un numero mayor a 5");
+	scanf("%d", &N);
+}
+	if(N>10){
+	printf("El numero ingresado es mayor a 10");
+	printf("Ingreses un numero mayor a 10");
+	scanf("%d", &N);
+}
+	int* A= (int*) malloc(sizeof(N));
+	printf("%i",*A);
+	printf("%d",N 
+
+
+
+}

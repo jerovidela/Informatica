@@ -1,0 +1,303 @@
+#include<stdio.h>
+#include<malloc.h>
+#include<string.h>
+#include<stdlib.h>
+#include<math.h>
+
+// DEFINIMOS ESTRUCTURA DE DATOS
+typedef struct {
+  char *linea;
+  float temperatura;
+  char *fecha_hora;
+}info;
+//
+info *datos;
+// FUNCIONES 
+void vaciar(char temp[],int L);
+void copiar(char temp[],int i);
+void asignar_fecha_hora(int N,char aux2[N], int pos1,int pos2,int i);//,char *val);
+void asignar_temperatura(int N,char aux2[N], int pos1,int pos2,float *val);
+void separadores(int N,char aux[N],int *posiciones);
+void asignar_valores(int N,char aux[N],int i);
+void moda(int MAX);
+void mediana(int MAX);
+void media(int MAX);
+void mayor_menor(int cantidad);
+//
+
+
+
+int main(void){
+  
+  // ABRIR .TXT
+  FILE *f;
+  f=fopen("temperaturas.txt","r");
+  if(f==NULL){printf("NO SE PUDO ABRIR EL ARCHIVO");exit(1);}
+  //
+  
+
+  // DETERMINAMOS LA CANTIDAD DE LINEAS QUE ENTRARON
+  int cont=-1, L=100; //L es una cantidad maxima estimada de caracteres por linea
+  char temp[L];
+  while(!feof(f)){ //se termina el while cuando el cursor llegue al final del archivo
+    fgets(temp,L,f);
+    //printf("cont %d",cont);
+    cont++;
+  }
+  //printf("cont %d",cont);
+  printf(" Cantidad de lecturas: %i\n",cont);
+  rewind(f);//devuelve el cursor al princio del archivo
+  //
+  
+  datos =(info*)malloc(cont*sizeof(info)); // asignamos memoria dinamica a datos
+  
+  //EXTRAER LINEAS EN STRING
+  char aux;
+  int parar;
+  for(int i=0; !feof(f); i++){ //se termina cuando sale un %
+    
+    vaciar(temp,L);
+    aux='0';
+    for(int j=0; aux!='%';j++){
+      aux=fgetc(f);
+      
+      if(aux!='%' && aux!='|'){
+        temp[j]=aux;  
+      }
+      if(aux=='|'){
+        parar=1;
+        break;
+        }
+    }
+    if(parar==1){break;}
+    
+   
+    //printf("entre");
+    copiar(temp,i);
+    fgets(temp,2,f); //Muevo el cursor hasta el final y cosidero los caracteres \n y \0
+    //printf("Medición #%i: %s \n",i+1, datos[i].linea);
+  }
+  fclose(f);//Cierro el txt porque ya no lo necesito
+  //
+  //printf("entre");
+  //Separamos el char linea en int especificos
+  for(int i=0; i<cont; i++){
+    //printf("entre");
+    int N=strlen(datos[i].linea)+1;
+    char aux2[N];
+    strcpy(aux2,datos[i].linea);
+    asignar_valores(N,aux2,i);
+    //printf("temp %f\n",datos[i].temperatura);
+    //printf("%f,",datos[i].temperatura);
+  }
+    //
+  
+  //printf("\n\n");
+  //printf("%s jhgf\n",datos[1].fecha_hora); 
+  mayor_menor(cont);
+  moda(cont);
+  media(cont);
+  mediana(cont);
+  
+       //printf("%s",datos[0].fecha_hora);
+
+
+  return 0;
+}
+
+
+void vaciar(char temp[],int L){
+  for(int i=0;i<L;i++){
+    temp[i]='\0';//vaciamos la variable temporal
+  }
+}
+
+void copiar(char temp[],int i){
+  //tenemos que reservar espacio para el string @tomdinamico
+  int N=strlen(temp)+1;
+  datos[i].linea=(char*)malloc(N*sizeof(char));
+  if(datos[i].linea==NULL){printf("No se pudo reservar memoria \n");exit(1);}
+  strcpy(datos[i].linea,temp);
+}
+
+void asignar_fecha_hora(int N,char aux2[N], int pos1,int pos2,int i){//,char *val){
+  int cont=0;
+  char *aux3;
+  //char aux[pos2-pos1];
+  datos[i].fecha_hora=(char*)malloc((pos2-pos1)*sizeof(char));
+  if(datos[i].fecha_hora==NULL){
+        printf("No se ha podido reservar la memoria. \n");
+        exit(1);
+    }
+  aux3=(char*)malloc((pos2-pos1)*sizeof(char));
+  if(aux3==NULL){
+        printf("No se ha podido reservar la memoria. \n");
+        exit(1);
+    }
+  for(int j=0;j<N; j++){
+    if((j>pos1)&&(j<pos2)){
+      aux3[cont]=aux2[j];
+      cont++;
+    }
+  }
+  
+  datos[i].fecha_hora=aux3;
+  //printf(" i %d Fecha y hora %s \n",i,datos[i].fecha_hora);
+  //*val=atol(aux);
+  //free(aux3);
+  
+}
+
+void asignar_temperatura(int N,char aux2[N], int pos1,int pos2,float *val){
+  int cont=0;
+  char *aux;
+  aux=(char*)malloc((pos2-pos1)*sizeof(char));
+  for(int j=0;j<N; j++){
+    if((j>pos1)&&(j<pos2)){
+      aux[cont]=aux2[j];
+      cont++;
+    }
+  }
+  *val=atof(aux);
+  free(aux);
+}
+
+void separadores(int N,char aux[N],int *posiciones){
+  int cont=0;
+  char signos[]=":,";//CARACTERES QUE SEPARAN DATOS
+  for(int i=0; i<N; i++){
+    for(int j=0; j<2; j++){
+      if(aux[i]==signos[j]){
+        posiciones[cont]=i;
+        cont++;
+      }
+    }
+  }
+}
+
+void asignar_valores(int N,char aux2[N],int i){
+  int *posiciones;
+  posiciones =(int*)malloc(7*sizeof(int));
+  separadores(N,aux2,posiciones);
+  asignar_temperatura(N,aux2,posiciones[0],posiciones[1],&datos[i].temperatura);
+  asignar_fecha_hora(N,aux2,posiciones[2],posiciones[5],i);//,&datos[i].fecha_hora);
+
+}
+
+void moda(int MAX){
+  float numero,mayor;
+  int posicion,posicionmayor;
+  float auxiliar[MAX];
+  // Calcular la moda
+    // Rellenamos el vector auxiliar inicializandolo a valores 0
+    for(int contador=0;contador<MAX;contador++) {
+        auxiliar[contador]=0;
+    }
+    // Recorrer el vector comprobando las repeticiones de cada numero
+    // y almacenando las mismas en el vector auxiliar segun la posicion
+    // del numero
+    for(int contador=0;contador<MAX;contador++) {
+        numero = datos[contador].temperatura;
+        posicion = contador;
+        for(int contador2=contador;contador2<MAX;contador2++) {
+            if(datos[contador2].temperatura==numero) auxiliar[posicion]++;
+        }
+    }
+    // Una vez establecidas las repeticiones de cada numero se ha de establcer
+    // cual es la posicion del vector que tiene un numero de repeticiones mayor
+    // ya que esta es la posicion que se corresponde con el numero que se repite
+    // mas veces el vector ( MODA )
+    // se establece en primer lugar el mayor como el primer elemento del vector
+    mayor=auxiliar[0];
+    posicionmayor = 0;
+    for(int contador=0;contador<MAX;contador++) {
+        if(auxiliar[contador]>mayor) {
+            posicionmayor=contador;
+            mayor=auxiliar[contador];
+        }
+    }
+    // Visualizar el elemento con mas frecuencia de aparicion
+    printf("\nMODA : %.2f\n",datos[posicionmayor].temperatura);
+}
+void mediana(int MAX){
+  // CALCULO DE LA MEDIANA
+  // en primer lugar se realiza la ordenacoin del vector de numeros
+  float numero;
+  int bandera=0;
+  for(int contador=MAX;contador>0 && bandera==0;contador--) {
+      bandera=1;
+      for(int contador2=0;contador2<contador;contador2++) {
+          if(datos[contador2].temperatura>datos[contador2+1].temperatura) {
+              numero = datos[contador2].temperatura;
+              datos[contador2].temperatura = datos[contador2+1].temperatura;
+              datos[contador2+1].temperatura=numero;
+              bandera=0;
+          }
+      }
+  }
+  // Visualizar los elementos introducidos en el vector
+  //printf("\nElementos del vector : ");
+  for(int contador=0;contador<MAX;contador++) {
+      //printf(" %f",numeros[contador]);
+  }
+  // Dependiendo de si el numero d elementos del vector es par o impar
+  // la mediana ha de ser el punto central del mismo o los dos puntos centrales
+  // del mismo.
+  if(MAX%2!=0) {
+      printf("\nEL valor de la mediana es : %.2f\n",datos[MAX/2].temperatura);
+  } else {
+      printf("\nEL valor 1 de la mediana es : %.2f\n",datos[MAX/2].temperatura);
+      printf("\nEL valor 2 de la mediana es : %.2f\n",datos[(MAX/2)-1].temperatura);
+  }
+}
+
+void media(int MAX){
+        float suma = 0,diferencia=0,desviacion=0;
+    for(int contador=0;contador<MAX;contador++) {
+        suma+=datos[contador].temperatura;
+    }
+    printf("\nMEDIA : %.2f\n",suma/MAX);
+    float media=(suma/MAX);
+    float x_x2,s;
+    //printf("temperatura 0 %f\n",datos[0].temperatura);
+    for(int i=0;i<MAX;i++){
+        x_x2+=(pow((((datos[i].temperatura)-media)),2))/(MAX-1);
+        //printf("%f it %d\n",x_x2,i);
+
+    }
+    s=(pow((x_x2),0.5));
+    printf("\nLa desviación estardar es %f\n",s);
+    /* 
+    int Media=suma/(MAX);
+    printf("\n%d\n",MAX);
+    for(int algo=0;algo<=MAX;algo++) {
+        diferencia+=pow((Media)-datos[algo].temperatura,2);
+        printf("\n%.2f\n",diferencia);
+    }
+    desviacion=sqrt(diferencia/(MAX));
+    printf("\n La desviacion estándar es: %f\n",desviacion);
+    */
+}
+
+void mayor_menor(int cantidad){
+     float mayor, menor;
+    mayor = menor = datos[0].temperatura;
+    int posM,posm;
+   
+
+    for (int i = 0; i < cantidad; ++i){
+        if (datos[i].temperatura >= mayor){
+            mayor = datos[i].temperatura;
+            posM=i;
+        }
+        if (datos[i].temperatura <= menor){ 
+            menor = datos[i].temperatura;
+            posm=i;
+            //printf("entre al menor");
+            //printf("%d",posm);
+        }
+	}
+  //printf("la fecha y ahora es %s \n",datos[1].fecha_hora);
+	printf("\nLa mayor temperatura registrada es %.2f con fecha %.20s\nLa menor temperatura registrada es %.2f con fecha %.20s\n", mayor,datos[posM].fecha_hora, menor,datos[posm].fecha_hora);
+
+}
